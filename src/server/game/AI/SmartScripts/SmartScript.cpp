@@ -102,7 +102,19 @@ void SmartScript::ProcessEventsFor(SMART_EVENT e, Unit* unit, uint32 var0,
 
         if (eventType
                 == e/* && (!(*i).event.event_phase_mask || IsInPhase((*i).event.event_phase_mask)) && !((*i).event.event_flags & SMART_EVENT_FLAG_NOT_REPEATABLE && (*i).runOnce)*/)
+		{
+			// Get the conditions for the event (if any)
+			bool condMeets = true;
+			ConditionList conds = sConditionMgr->GetConditionsForSmartEvent((*i).entryOrGuid, (*i).event_id, (*i).source_type);
+			// Check the conditions
+			if(Player* player = unit->ToPlayer())
+			condMeets = sConditionMgr->IsPlayerMeetToConditions(player,conds);
+			
+			if (condMeets)
             ProcessEvent(*i, unit, var0, var1, bvar, spell, gob);
+			else
+			sLog->outDebug(LOG_FILTER_TSCR,"SmartScript::Entry %d SourceType %u Event %u Action %u uses invalid Condition, skipped.", (*i).entryOrGuid, (*i).GetScriptType(), (*i).event_id, (*i).GetActionType());
+		}
     }
 }
 
